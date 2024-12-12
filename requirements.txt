@@ -16,3 +16,7 @@ scipy==1.14.1
 streamlit
 plotly
 requests
+textblob 
+spacy 
+gensim 
+nltk 
