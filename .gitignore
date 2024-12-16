@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+raw_analyst_ratings
+data
+scripts / sentiment.py
 
 # C extensions
 *.so
@@ -77,6 +80,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+.main.ipynb
 
 # IPython
 profile_default/
@@ -144,6 +148,8 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+main.ipynb
+sentiment.py
 
 # Pyre type checker
 .pyre/

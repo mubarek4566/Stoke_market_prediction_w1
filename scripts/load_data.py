@@ -21,13 +21,28 @@ class CSVData:
             # Append the dataframe to the list
             self.datas.append(df)
     
-    def merge_csvdata(self):
+    def merge_dataframes(self):
         # Merge all csv files into one
         merged_df = pd.concat(self.datas, ignore_index=True)
         return merged_df
     
-    def load_news_data(self, file_path):
-        # Load the CSV file into a DataFrame
-        df = pd.read_csv(file_path)
-        return df    
 
+    def load_news_csv(file_path):
+        """Loads a single CSV file from a given path and converts it to a DataFrame."""
+        try:
+            # Check if the file exists and is a CSV
+            if not os.path.isfile(file_path) or not file_path.endswith('.csv'):
+                raise ValueError("The provided file path is invalid or not a CSV file.")
+            
+            # Load the CSV file into a DataFrame
+            df = pd.read_csv(file_path)
+            
+            # Check if the DataFrame is empty
+            if df.empty:
+                print(f"Warning: The file at {file_path} is empty.")
+                return None
+            return df
+        
+        except Exception as e:
+            print(f"Error loading file {file_path}: {e}")
+            return None
