@@ -1,6 +1,7 @@
 # import Python libraries
 import pandas as pd
 import os
+from path import get_csv_path
 
 # Define data loader class
 class CSVData:
@@ -26,6 +27,20 @@ class CSVData:
         merged_df = pd.concat(self.datas, ignore_index=True)
         return merged_df
     
+    def load_csv_file(self):
+        """
+        Function to load a CSV file using the path returned by get_csv_path().
+        """
+        csv_path = get_csv_path()
+        try:
+            data = pd.read_csv(csv_path)
+            return data
+        except FileNotFoundError:
+            print(f"Error: File not found at {csv_path}. Please check the path.")
+            return None
+        except Exception as e:
+            print(f"An error occurred while reading the file: {e}")
+            return csv_path
 
     def load_news_csv(file_path):
         """Loads a single CSV file from a given path and converts it to a DataFrame."""
