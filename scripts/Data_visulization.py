@@ -66,27 +66,36 @@ class EDA:
             print("No duplicate rows found.")
     
     def univariate_num(self):
-        #Univariate Analysis for Numerical Columns Distribution
+        """
+        Univariate Analysis for Numerical Columns Distribution.
+        """
+        # Select only numerical columns
         numerical_cols = self.dataframe.select_dtypes(include=['int64', 'float64']).columns
-        for col in numerical_cols:
-            plt.figure()
-            sns.histplot(self.dataframe[col], kde=True, bins=30)
-            plt.title(f"Distribution of {col}")
-            plt.xlabel(col)
-            plt.ylabel("Frequency")
-            plt.show()
-    
-    def univariate_cate(self):
-        # Categorical Columns Analysis
-        categorical_cols = self.dataframe.select_dtypes(include=['object']).columns
-        for col in categorical_cols:
-            plt.figure()
-            sns.countplot(data=self.dataframe, x=col, order=self.dataframe[col].value_counts().index)
-            plt.title(f"Countplot of {col}")
-            plt.xlabel(col)
-            plt.ylabel("Count")
-            plt.xticks(rotation=45)
-            plt.show()
+        
+        # Define grid size: Calculate rows and columns dynamically
+        num_cols = 3  # Number of columns in the grid
+        num_plots = len(numerical_cols)  # Total number of plots
+        num_rows = math.ceil(num_plots / num_cols)  # Calculate required rows dynamically
+        
+        # Create a figure with subplots
+        fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, 5 * num_rows))
+        axes = axes.flatten()  # Flatten axes for easier iteration
+        
+        # Loop through numerical columns and plot histograms
+        for idx, col in enumerate(numerical_cols):
+            sns.histplot(self.dataframe[col], kde=True, bins=30, ax=axes[idx])  # Histogram with KDE
+            axes[idx].set_title(f"Distribution of {col}")  # Set title
+            axes[idx].set_xlabel(col)  # Label x-axis
+            axes[idx].set_ylabel("Frequency")  # Label y-axis
+        
+        # Hide any unused subplots
+        for i in range(len(numerical_cols), len(axes)):
+            fig.delaxes(axes[i])
+        
+        # Adjust layout to prevent overlapping
+        plt.tight_layout()
+        plt.show()
+
 
     def bivariate_num(self):
         # Bivariate Analysis for Numerical vs Numerical (Scatterplots)
@@ -129,3 +138,43 @@ class EDA:
         plt.title("Correlation Heatmap")
         plt.show()
 
+
+    def plot_sentiment_distribution(self):
+        sentiment_counts = self.dataframe['sentiment'].value_counts()
+        plt.figure(figsize=(8, 5))
+        sns.barplot(x=sentiment_counts.index, y=sentiment_counts.values, palette="viridis")
+        plt.title("Distribution of Sentiments in Headlines")
+        plt.xlabel("Sentiment")
+        plt.ylabel("Count")
+        plt.show()
+
+    # function to plot average price change by sentiment
+    def plot_price_changes(self):
+        if 'Close' not in self.dataframe.columns or 'Open' not in self.dataframe.columns:
+            print("Stock price data (Open, Close) is missing!")
+            return
+
+        self.dataframe['price_change'] = self.dataframe['Close'] - self.dataframe['Open']  # Daily price change
+        sentiment_groups = self.dataframe.groupby('sentiment')['price_change'].mean().reset_index()
+
+        plt.figure(figsize=(8, 5))
+        sns.barplot(
+            data=sentiment_groups,
+            x='sentiment',
+            y='price_change',
+            palette="coolwarm",
+        )
+        plt.title("Average Stock Price Change by Sentiment")
+        plt.xlabel("Sentiment")
+        plt.ylabel("Average Price Change")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.show()
+
+    def plot_category(self):
+        # Plot the categories
+        plt.figure(figsize=(8, 5))
+        sns.barplot(x=self.dataframe.index, y=self.dataframe.values, palette="coolwarm")
+        plt.title("Distribution of Daily Returns")
+        plt.xlabel("Return Category")
+        plt.ylabel("Count")
+        plt.show()
