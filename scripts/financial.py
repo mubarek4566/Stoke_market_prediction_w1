@@ -8,6 +8,9 @@ from pyti.exponential_moving_average import exponential_moving_average as ema
 #import pandas_ta as ta
 import pynance as pn
 import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import pearsonr
+from scipy.stats import spearmanr
 
 class FinancialAnalysis:
     def __init__(self, dataframe):
@@ -66,3 +69,59 @@ class FinancialAnalysis:
         """
         data = pn.data.get(symbol, start=start, end=end)
         return data
+    
+    def Correlation_news_stock(self):
+        sentiment_map = {'Positive': 1, 'Neutral': 0, 'Negative': -1}
+        self.df['sentiment_score'] = self.df['sentiment'].map(sentiment_map)
+
+        # Aggregate sentiment scores for each day
+        daily_sentiment = self.df.groupby('date')['sentiment_score'].mean().reset_index()
+        daily_data = pd.merge(daily_sentiment, self.df[['date', 'daily_return']].drop_duplicates(), on='date')
+
+        # Drop rows with missing data
+        daily_data = daily_data.dropna()
+
+        # Compute Pearson correlation
+        correlation, p_value = pearsonr(daily_data['sentiment_score'], daily_data['daily_return'])
+        print(f"Pearson Correlation: {correlation:.4f} (p-value: {p_value:.4e})")
+
+        # Scatterplot
+        plt.figure(figsize=(8, 6))
+        sns.scatterplot(data=daily_data, x='sentiment_score', y='daily_return', color="blue")
+        plt.title(f"Correlation Between Sentiment Scores and Stock Returns\n(Pearson r: {correlation:.2f})")
+        plt.xlabel("Average Daily Sentiment Score")
+        plt.ylabel("Daily Stock Return (%)")
+        plt.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+        plt.axvline(0, color='gray', linestyle='--', linewidth=0.8)
+        plt.show()
+        
+    def Spearman_Corr_news_stock(self):
+        required_columns = ['sentiment', 'daily_return']
+        missing_columns = [col for col in required_columns if col not in self.df.columns]
+        
+        if missing_columns:
+            raise KeyError(f"The following required columns are missing: {missing_columns}")
+        
+        # Map sentiments to numerical scores (if not already done)
+        sentiment_map = {'Positive': 1, 'Neutral': 0, 'Negative': -1}
+        if 'sentiment_score' not in self.df.columns:
+            self.df['sentiment_score'] = self.df['sentiment'].map(sentiment_map)
+        
+        # Drop rows with NaN in the necessary columns
+        self.df.dropna(subset=['sentiment_score', 'daily_return'], inplace=True)
+        
+        # Compute Spearman correlation
+        correlation, p_value = spearmanr(self.df['sentiment_score'], self.df['daily_return'])
+        print(f"Spearman Correlation: {correlation:.4f} (p-value: {p_value:.4e})")
+        
+        # Scatterplot
+        plt.figure(figsize=(8, 6))
+        sns.scatterplot(data=self.df, x='sentiment_score', y='daily_return', color="blue")
+        plt.title(f"Correlation Between Sentiment Scores and Stock Returns\n(Spearman ρ: {correlation:.2f})")
+        plt.xlabel("Sentiment Score")
+        plt.ylabel("Daily Stock Return (%)")
+        plt.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+        plt.axvline(0, color='gray', linestyle='--', linewidth=0.8)
+        plt.show()
+
+        
